@@ -1,1 +1,0 @@
-Scheda DnD personale
