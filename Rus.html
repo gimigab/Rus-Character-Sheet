@@ -76,6 +76,8 @@ kbd{background:#fff;padding:4px 8px;border-radius:6px;border:1px solid rgba(0,0,
 
     <div class="section" style="display:flex;gap:12px;flex-wrap:wrap;margin-top:12px">
       <div class="card left">
+
+        <!-- PF MASSIMI -->
         <div class="small">PF Massimi</div>
         <div class="flex">
           <button class="inline-btn" id="hpMaxMinus">-</button>
@@ -84,6 +86,8 @@ kbd{background:#fff;padding:4px 8px;border-radius:6px;border:1px solid rgba(0,0,
         </div>
 
         <div style="height:8px"></div>
+
+        <!-- PF ATTUALI -->
         <div class="small">PF Attuali</div>
         <div class="flex">
           <button class="inline-btn" id="hpMinus">-</button>
@@ -92,6 +96,8 @@ kbd{background:#fff;padding:4px 8px;border-radius:6px;border:1px solid rgba(0,0,
         </div>
 
         <div style="height:8px"></div>
+
+        <!-- PF EXTRA -->
         <div class="small">PF Extra</div>
         <div class="flex">
           <button class="inline-btn" id="thpMinus">-</button>
@@ -100,7 +106,9 @@ kbd{background:#fff;padding:4px 8px;border-radius:6px;border:1px solid rgba(0,0,
         </div>
 
         <div style="height:12px"></div>
-        <div class="small">Classe Armatura (AC)</div>
+
+        <!-- AC -->
+        <div class="small">Classe Armatura</div>
         <div class="flex">
           <button class="inline-btn" id="acMinus">-</button>
           <div class="big" id="ac">15</div>
@@ -108,6 +116,18 @@ kbd{background:#fff;padding:4px 8px;border-radius:6px;border:1px solid rgba(0,0,
         </div>
 
         <div style="height:12px"></div>
+
+        <!-- ✨ FIAMMA SELVAGGIA (NUOVO) -->
+        <div class="small">Fiamma Selvaggia</div>
+        <div class="flex">
+          <button class="inline-btn" id="wildMinus">-</button>
+          <div class="big" id="wild">2</div>
+          <button class="inline-btn" id="wildPlus">+</button>
+        </div>
+
+        <div style="height:12px"></div>
+
+        <!-- ISPIRAZIONE -->
         <div class="small">Ispirazione</div>
         <div class="flex">
           <button class="inline-btn" id="inspMinus">-</button>
@@ -116,6 +136,8 @@ kbd{background:#fff;padding:4px 8px;border-radius:6px;border:1px solid rgba(0,0,
         </div>
 
         <div style="height:12px"></div>
+
+        <!-- TIRI SALVEZZA MORTE -->
         <div class="small">Tiri Salvezza Morte</div>
         <div class="tiny">Successi: <span id="deathSucc">0</span> • Fallimenti: <span id="deathFail">0</span></div>
         <div style="margin-top:6px" class="controls">
@@ -124,8 +146,10 @@ kbd{background:#fff;padding:4px 8px;border-radius:6px;border:1px solid rgba(0,0,
           <button class="inline-btn" id="deathFailPlus">+F</button>
           <button class="inline-btn" id="deathFailMinus">-F</button>
         </div>
+
       </div>
 
+      <!-- INCANTESIMI -->
       <div class="card right" style="min-width:300px">
         <div class="small">Slot Incantesimi</div>
         <div class="spells" id="spellSlots" style="margin-top:8px"></div>
@@ -145,7 +169,7 @@ kbd{background:#fff;padding:4px 8px;border-radius:6px;border:1px solid rgba(0,0,
     </div>
   </div>
 
-  <!-- MODAL -->
+  <!-- MODALE -->
   <div class="modal" id="modal">
     <div class="box" id="modalBox">
       <button class="btn-close" id="modalClose">Chiudi ✕</button>
@@ -161,168 +185,212 @@ kbd{background:#fff;padding:4px 8px;border-radius:6px;border:1px solid rgba(0,0,
   </div>
 
 <script>
-/* ---------- DATI INIZIALI ---------- */
+/* DATI INIZIALI */
 const initial = {
   nome: "Rüs la Fiamma Ruvida",
   classe: "Piromante",
   livello: 6,
   profBonus: 3,
   stats: { Forza:14, Destrezza:12, Costituzione:18, Intelligenza:7, Saggezza:18, Carisma:9 },
-  hpMax:63, hpCur:63, thp:34, ac:15, inspiration:1,
-  slots: {1:4,2:3,3:3,4:0,5:0,6:0,7:0,8:0,9:0},
-  profs: {},
-  death: {succ:0, fail:0}
+  hpMax:63, hpCur:63, thp:34, ac:15, wild:2, inspiration:0,
+  slots:{1:4,2:3,3:3,4:0,5:0,6:0,7:0,8:0,9:0},
+  profs:{},
+  death:{succ:0,fail:0}
 };
 
-const SAVE_KEY = "scheda_rus_v2";
+const SAVE_KEY="scheda_rus_v2";
+function mod(s){return Math.floor((s-10)/2);}
+function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
+function save(){localStorage.setItem(SAVE_KEY,JSON.stringify(state));}
+function load(){const r=localStorage.getItem(SAVE_KEY);if(!r)return JSON.parse(JSON.stringify(initial));try{return JSON.parse(r);}catch{return JSON.parse(JSON.stringify(initial));}}
+let state=load();
 
-function modFromScore(s){ return Math.floor((s-10)/2); }
-function clamp(v,min,max){return Math.max(min,Math.min(max,v));}
-function save(){ localStorage.setItem(SAVE_KEY, JSON.stringify(state)); }
-function load(){ 
-  const raw = localStorage.getItem(SAVE_KEY);
-  if(raw) try{return JSON.parse(raw);}catch(e){}
-  return JSON.parse(JSON.stringify(initial));
-}
-
-let state = load();
-
-const skillMap = {
-  Forza: ["Atletica"],
-  Destrezza: ["Acrobazia","Furtività","Rapidità di Mano"],
-  Costituzione: [],
+const skillMap={
+  Forza:["Atletica"],
+  Destrezza:["Acrobazia","Furtività","Rapidità di Mano"],
+  Costituzione:[],
   Intelligenza:["Arcano","Indagare","Natura","Storia","Religione"],
   Saggezza:["Medicina","Percezione","Sopravvivenza","Intuizione","Addestrare Animali"],
   Carisma:["Inganno","Intimidire","Persuasione","Intrattenere"]
 };
 
-const el = id=>document.getElementById(id);
-
-let currentStatInModal = null;
+const el=id=>document.getElementById(id);
+let currentStatInModal=null;
 
 function renderAll(){
-  el("lvl").textContent = state.livello;
-  el("prof").textContent = (state.profBonus>0?"+":"")+state.profBonus;
+  el("lvl").textContent=state.livello;
+  el("prof").textContent=(state.profBonus>=0?"+":"")+state.profBonus;
 
-  const grid = el("statsGrid"); grid.innerHTML="";
-  for(const [name,val] of Object.entries(state.stats)){
-    const m = modFromScore(val);
-    const div = document.createElement("div");
-    div.className = "stat";
-    div.innerHTML = `<h3>${name}</h3><div class="num">${val}</div><div class="small">Mod ${m>=0?"+":""}${m}</div>`;
-    div.onclick = ()=>{currentStatInModal=name; openModal(name);};
-    grid.appendChild(div);
+  const g=el("statsGrid"); g.innerHTML="";
+  for(const[n,v] of Object.entries(state.stats)){
+    const m=mod(v);
+    const d=document.createElement("div");
+    d.className="stat";
+    d.innerHTML=`<h3>${n}</h3><div class="num">${v}</div><div class="small">Mod ${m>=0?"+":""}${m}</div>`;
+    d.onclick=()=>{currentStatInModal=n;openModal(n);};
+    g.appendChild(d);
   }
 
-  el("hpMax").textContent = state.hpMax;
-  el("hpCur").textContent = state.hpCur;
-  el("thp").textContent = state.thp;
-  el("ac").textContent = state.ac;
-  el("insp").textContent = state.inspiration;
+  el("hpMax").textContent=state.hpMax;
+  el("hpCur").textContent=state.hpCur;
+  el("thp").textContent=state.thp;
+  el("ac").textContent=state.ac;
+  el("insp").textContent=state.inspiration;
+  el("wild").textContent=state.wild;
 
-  el("deathSucc").textContent = state.death.succ;
-  el("deathFail").textContent = state.death.fail;
+  el("deathSucc").textContent=state.death.succ;
+  el("deathFail").textContent=state.death.fail;
 
-  const slotsDiv = el("spellSlots"); slotsDiv.innerHTML="";
+  const slotsDiv=el("spellSlots"); slotsDiv.innerHTML="";
   for(let i=1;i<=9;i++){
-    const val = state.slots[i] ?? 0;
-    const card = document.createElement("div");
-    card.className = "spell-card";
-    card.innerHTML = `
+    const val=state.slots[i]||0;
+    const c=document.createElement("div");
+    c.className="spell-card";
+    c.innerHTML=`
       <div class="small">Livello ${i}</div>
       <div class="flex" style="justify-content:center;align-items:center;margin-top:6px">
         <button class="inline-btn" data-l="${i}" data-op="-" onclick="slotChange(event)">-</button>
         <div style="width:36px;text-align:center;font-weight:700">${val}</div>
         <button class="inline-btn" data-l="${i}" data-op="+" onclick="slotChange(event)">+</button>
       </div>`;
-    slotsDiv.appendChild(card);
+    slotsDiv.appendChild(c);
   }
 
   save();
 }
 
-/* CONTROLLI */
-el("lvlPlus").onclick = ()=>{ state.livello++; renderAll(); };
-el("lvlMinus").onclick = ()=>{ state.livello = Math.max(1,state.livello-1); renderAll(); };
-
-el("profPlus").onclick = ()=>{ state.profBonus++; renderAll(); };
-el("profMinus").onclick = ()=>{ state.profBonus = Math.max(0,state.profBonus-1); renderAll(); };
-
-el("hpMaxPlus").onclick = ()=>{ state.hpMax++; state.hpCur = Math.min(state.hpCur,state.hpMax); renderAll(); };
-el("hpMaxMinus").onclick = ()=>{ state.hpMax = Math.max(1,state.hpMax-1); state.hpCur = Math.min(state.hpCur,state.hpMax); renderAll(); };
-
-el("hpPlus").onclick = ()=>{ state.hpCur = Math.min(state.hpMax,state.hpCur+1); renderAll(); };
-el("hpMinus").onclick = ()=>{ state.hpCur = Math.max(0,state.hpCur-1); renderAll(); };
-
-el("thpPlus").onclick = ()=>{ state.thp++; renderAll(); };
-el("thpMinus").onclick = ()=>{ state.thp = Math.max(0,state.thp-1); renderAll(); };
-
-el("acPlus").onclick = ()=>{ state.ac++; renderAll(); };
-el("acMinus").onclick = ()=>{ state.ac = Math.max(0,state.ac-1); renderAll(); };
-
-el("inspPlus").onclick = ()=>{ state.inspiration++; renderAll(); };
-el("inspMinus").onclick = ()=>{ state.inspiration = Math.max(0,state.inspiration-1); renderAll(); };
-
-el("deathSuccPlus").onclick = ()=>{ state.death.succ = clamp(state.death.succ+1,0,3); renderAll(); };
-el("deathSuccMinus").onclick = ()=>{ state.death.succ = clamp(state.death.succ-1,0,3); renderAll(); };
-el("deathFailPlus").onclick = ()=>{ state.death.fail = clamp(state.death.fail+1,0,3); renderAll(); };
-el("deathFailMinus").onclick = ()=>{ state.death.fail = clamp(state.death.fail-1,0,3); renderAll(); };
-
-function slotChange(e){
-  const lvl = Number(e.currentTarget.dataset.l);
-  const op = e.currentTarget.dataset.op;
-  if(op==="+") state.slots[lvl] = (state.slots[lvl]||0)+1;
-  else state.slots[lvl] = Math.max(0,(state.slots[lvl]||0)-1);
-  renderAll();
+/* ✨ MODIFICHE RICHIESTE ✨ */
+function askAmount(msg){
+  let v=prompt(msg);
+  if(v===null) return null;
+  v=parseInt(v);
+  return isNaN(v)?null:v;
 }
 
-el("resetSlots").onclick = ()=>{
-  if(confirm("Ripristinare gli slot ai valori iniziali?")){
-    state.slots = Object.assign({}, initial.slots);
+/* PF MASSIMI */
+el("hpMaxPlus").onclick=()=>{
+  let a=askAmount("Aumentare PF Massimi di quanto?");
+  if(a!=null && a>0){
+    state.hpMax+=a;
+    state.hpCur=Math.min(state.hpCur,state.hpMax);
+    renderAll();
+  }
+};
+el("hpMaxMinus").onclick=()=>{
+  let a=askAmount("Diminuire PF Massimi di quanto?");
+  if(a!=null && a>0){
+    state.hpMax=Math.max(1,state.hpMax-a);
+    state.hpCur=Math.min(state.hpCur,state.hpMax);
     renderAll();
   }
 };
 
-el("exportBtn").onclick = ()=>{
-  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state,null,2));
-  const a = document.createElement("a");
-  a.href=dataStr; a.download="scheda_rus.json";
-  document.body.appendChild(a); a.click(); a.remove();
+/* PF ATTUALI */
+el("hpPlus").onclick=()=>{
+  let a=askAmount("Aumentare PF Attuali di quanto?");
+  if(a!=null && a>0){
+    state.hpCur=Math.min(state.hpMax,state.hpCur+a);
+    renderAll();
+  }
+};
+el("hpMinus").onclick=()=>{
+  let a=askAmount("Diminuire PF Attuali di quanto?");
+  if(a!=null && a>0){
+    state.hpCur=Math.max(0,state.hpCur-a);
+    renderAll();
+  }
 };
 
-el("importBtn").onclick = ()=> el("importFile").click();
+/* PF EXTRA */
+el("thpPlus").onclick=()=>{
+  let a=askAmount("Aumentare PF Extra di quanto?");
+  if(a!=null && a>0){
+    state.thp+=a;
+    renderAll();
+  }
+};
+el("thpMinus").onclick=()=>{
+  let a=askAmount("Diminuire PF Extra di quanto?");
+  if(a!=null && a>0){
+    state.thp=Math.max(0,state.thp-a);
+    renderAll();
+  }
+};
+
+/* RESTO IDENTICO */
+el("lvlPlus").onclick=()=>{state.livello++;renderAll();};
+el("lvlMinus").onclick=()=>{state.livello=Math.max(1,state.livello-1);renderAll();};
+
+el("profPlus").onclick=()=>{state.profBonus++;renderAll();};
+el("profMinus").onclick=()=>{state.profBonus=Math.max(0,state.profBonus-1);renderAll();};
+
+el("acPlus").onclick=()=>{state.ac++;renderAll();};
+el("acMinus").onclick=()=>{state.ac=Math.max(0,state.ac-1);renderAll();};
+
+el("inspPlus").onclick=()=>{state.inspiration++;renderAll();};
+el("inspMinus").onclick=()=>{state.inspiration=Math.max(0,state.inspiration-1);renderAll();};
+
+el("wildPlus").onclick=()=>{state.wild++;renderAll();};
+el("wildMinus").onclick=()=>{state.wild=Math.max(0,state.wild-1);renderAll();};
+
+el("deathSuccPlus").onclick=()=>{state.death.succ=clamp(state.death.succ+1,0,3);renderAll();};
+el("deathSuccMinus").onclick=()=>{state.death.succ=clamp(state.death.succ-1,0,3);renderAll();};
+el("deathFailPlus").onclick=()=>{state.death.fail=clamp(state.death.fail+1,0,3);renderAll();};
+el("deathFailMinus").onclick=()=>{state.death.fail=clamp(state.death.fail-1,0,3);renderAll();};
+
+function slotChange(e){
+  const lvl=Number(e.currentTarget.dataset.l);
+  const op=e.currentTarget.dataset.op;
+  if(op==="+") state.slots[lvl]=(state.slots[lvl]||0)+1;
+  else state.slots[lvl]=Math.max(0,(state.slots[lvl]||0)-1);
+  renderAll();
+}
+
+el("resetSlots").onclick=()=>{
+  if(confirm("Ripristinare gli slot ai valori iniziali?")){
+    state.slots=Object.assign({},initial.slots);
+    renderAll();
+  }
+};
+
+el("exportBtn").onclick=()=>{
+  const data="data:text/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(state,null,2));
+  const a=document.createElement("a");
+  a.href=data; a.download="scheda_rus.json";
+  document.body.appendChild(a); a.click(); a.remove();
+};
+el("importBtn").onclick=()=>el("importFile").click();
 el("importFile").addEventListener("change",(ev)=>{
-  const f = ev.target.files[0];
-  if(!f) return;
-  const reader = new FileReader();
-  reader.onload = ()=>{
+  const f=ev.target.files[0];
+  if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{
     try{
-      const loaded = JSON.parse(reader.result);
-      state = Object.assign({}, initial, loaded);
+      state=Object.assign({},initial,JSON.parse(r.result));
       renderAll();
       alert("Import riuscito");
-    }catch(e){ alert("File non valido"); }
+    }catch(e){alert("File non valido");}
   };
-  reader.readAsText(f);
+  r.readAsText(f);
 });
 
 /* MODALE */
-const modal = el("modal");
-const modalTitle = el("modalTitle");
-const modalSub = el("modalSub");
-const modalContent = el("modalContent");
+const modal=el("modal");
+const modalTitle=el("modalTitle");
+const modalSub=el("modalSub");
+const modalContent=el("modalContent");
 
-function computeSkillValue(key, isSave){
+function computeSkillValue(key,isSave){
   if(isSave){
-    const base = modFromScore(state.stats[key]);
-    const prof = state.profs[key+"_save"] ? state.profBonus : 0;
-    return base + prof;
-  } else {
-    for(const [stat, list] of Object.entries(skillMap)){
+    const base=mod(state.stats[key]);
+    const p=state.profs[key+"_save"]?state.profBonus:0;
+    return base+p;
+  }else{
+    for(const[s,list]of Object.entries(skillMap)){
       if(list.includes(key)){
-        const base = modFromScore(state.stats[stat]);
-        const prof = state.profs[key] ? state.profBonus : 0;
-        return base + prof;
+        const base=mod(state.stats[s]);
+        const p=state.profs[key]?state.profBonus:0;
+        return base+p;
       }
     }
     return 0;
@@ -330,92 +398,81 @@ function computeSkillValue(key, isSave){
 }
 
 function toggleProf(key){
-  state.profs[key] = !state.profs[key];
-  save();
-  renderAll();
-  if(currentStatInModal) openModal(currentStatInModal);
+  state.profs[key]=!state.profs[key];
+  save(); renderAll();
+  if(currentStatInModal)openModal(currentStatInModal);
 }
 
-function openModal(statName){
-  modal.style.display = "flex";
-  modalTitle.textContent = statName;
+function openModal(stat){
+  modal.style.display="flex";
+  modalTitle.textContent=stat;
+  const score=state.stats[stat];
+  const m=mod(score);
+  modalSub.textContent=`Valore: ${score} • Modificatore: ${m>=0?"+":""}${m}`;
 
-  const score = state.stats[statName];
-  const mod = modFromScore(score);
-  modalSub.textContent = `Valore: ${score} • Modificatore: ${mod>=0?"+":""}${mod}`;
+  modalContent.innerHTML="";
 
-  modalContent.innerHTML = "";
+  const saveRow=document.createElement("div");
+  saveRow.className="skill-row";
+  const keySave=stat+"_save";
+  const saveVal=computeSkillValue(stat,true);
 
-  const saveRow = document.createElement("div");
-  saveRow.className = "skill-row";
-  const keySave = statName + "_save";
-  const saveVal = computeSkillValue(statName, true);
-
-  saveRow.innerHTML = `
+  saveRow.innerHTML=`
     <div>Tiro Salvezza</div>
     <div>
       <span style="margin-right:8px">${saveVal>=0?"+":""}${saveVal}</span>
       <button class="inline-btn" onclick="toggleProf('${keySave}')">
-        ${state.profs[keySave] ? "P ✓" : "Aggiungi P"}
+        ${state.profs[keySave]?"P ✓":"Aggiungi P"}
       </button>
-    </div>
-  `;
+    </div>`;
   modalContent.appendChild(saveRow);
 
   modalContent.appendChild(document.createElement("hr"));
 
-  for(const skill of skillMap[statName] || []){
-    const v = computeSkillValue(skill,false);
-
-    const row = document.createElement("div");
+  for(const sk of skillMap[stat]||[]){
+    const v=computeSkillValue(sk,false);
+    const row=document.createElement("div");
     row.className="skill-row";
-
-    row.innerHTML = `
-      <div>${skill}</div>
+    row.innerHTML=`
+      <div>${sk}</div>
       <div>
         <span style="margin-right:8px">${v>=0?"+":""}${v}</span>
-        <button class="inline-btn" onclick="toggleProf('${skill}')">
-          ${state.profs[skill] ? "P ✓" : "Aggiungi P"}
+        <button class="inline-btn" onclick="toggleProf('${sk}')">
+          ${state.profs[sk]?"P ✓":"Aggiungi P"}
         </button>
-      </div>
-    `;
-
+      </div>`;
     modalContent.appendChild(row);
   }
 
   modalContent.appendChild(document.createElement("hr"));
 
-  const editRow = document.createElement("div");
-  editRow.innerHTML = `
+  const edit=document.createElement("div");
+  edit.innerHTML=`
     <div class="tiny">
-      Modifica valore ${statName}:
+      Modifica valore ${stat}:
       <input id="statEdit" type="number" value="${score}" style="width:80px;padding:6px;border-radius:6px;border:1px solid rgba(0,0,0,0.08)">
-      <button class="inline-btn" onclick="saveStat('${statName}')">Salva</button>
-    </div>
-  `;
-  modalContent.appendChild(editRow);
-
+      <button class="inline-btn" onclick="saveStat('${stat}')">Salva</button>
+    </div>`;
+  modalContent.appendChild(edit);
 }
 
-function saveStat(statName){
-  const v = parseInt(document.getElementById("statEdit").value);
-  state.stats[statName] = clamp(v,1,30);
+function saveStat(stat){
+  const v=parseInt(el("statEdit").value);
+  state.stats[stat]=clamp(v,1,30);
   renderAll();
-  openModal(statName);
+  openModal(stat);
 }
 
-function closeModal(){ modal.style.display = "none"; }
-el("modalClose").onclick = closeModal;
-el("modalSave").onclick = closeModal;
-modal.onclick = (e)=>{ if(e.target===modal) closeModal(); };
-
-window.slotChange = slotChange;
-window.toggleProf = toggleProf;
+function closeModal(){modal.style.display="none";}
+el("modalClose").onclick=closeModal;
+el("modalSave").onclick=closeModal;
+modal.onclick=e=>{if(e.target===modal)closeModal();};
 
 function init(){
-  state.stats = Object.assign({}, initial.stats, state.stats || {});
-  state.slots = Object.assign({}, initial.slots, state.slots || {});
-  state.profs = Object.assign({}, state.profs || {});
+  state.stats=Object.assign({},initial.stats,state.stats||{});
+  state.slots=Object.assign({},initial.slots,state.slots||{});
+  state.profs=Object.assign({},state.profs||{});
+  if(state.wild==null) state.wild=2;
   renderAll();
 }
 
